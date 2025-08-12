@@ -1,2 +1,11 @@
 # ai-freelance-escrow-india
-AI-powered freelancing platform tailored for the Indian market with integrated escrow payments to ensure secure transactions between clients and freelancers.
+This project aims to create a freelancing platform that integrates AI job matching, secure escrow payments, and a user-friendly interface tailored for freelancers and clients in India.
+
+## Tech Stack
+- **Frontend:** HTML, CSS, JavaScript, React
+- **Backend:** Node.js + Express.js
+- **Database:** MongoDB Atlas + Mongoose
+- **Authentication:** JWT
+- **File Storage:** Multer
+- **Deployment:** Heroku / Render (free tier)
+- **Version Control:** GitHub
