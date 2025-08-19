@@ -45,5 +45,3 @@ The platform addresses common challenges faced by freelancers and clients such a
 - H. Zhang, Z. Lin, and X. Hu, “The effectiveness of the escrow model: An experimental framework for dynamic online environments,” Journal of Organizational Computing and Electronic Commerce, 2007.  
 
 ---
-
-This repository will be updated progressively with code and features as the project development advances.
