@@ -7,5 +7,5 @@ This project aims to create a freelancing platform that integrates AI job matchi
 - **Database:** MongoDB Atlas + Mongoose
 - **Authentication:** JWT
 - **File Storage:** Multer
-- **Deployment:** Heroku / Render (free tier)
+- **Deployment:** Render (free tier)
 - **Version Control:** GitHub
