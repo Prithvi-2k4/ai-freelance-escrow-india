@@ -34,10 +34,43 @@ The platform addresses common challenges faced by freelancers and clients such a
 - Role-based dashboards with tailored experiences for freelancers and employers.  
 - Cloud-hosted prototype built entirely using free-tier and open-source tools.  
 
-## Project Timeline
-- Review 2: User authentication, profile management, and job posting features.  
-- Review 3: AI recommendation engine and simulated escrow payment flow.  
-- Final Review: Fully functional prototype with dashboards and project management tools.  
+# Project Timeline
+
+## Phase 1: Planning & Research (Week 1–2)
+- Requirement gathering, background research, and tech stack finalization.  
+- Ensures clarity before development begins.  
+
+## Phase 2: UI/UX Design (Week 3)
+- Wireframing, prototyping, and defining user flows for freelancers and clients.  
+- Provides a clear picture of how users will interact with the platform.  
+
+## Phase 3: Backend Setup (Week 4–5)
+- Setup of Node.js + Express server.  
+- Database connection with MongoDB.  
+- Implementation of JWT-based authentication.  
+- Establishes the core server foundation.  
+
+## Phase 4: Frontend Development (Week 5–6)
+- Development of React interface for freelancers and clients.  
+- Creation of role-based dashboards.  
+
+## Phase 5: AI Module Integration (Week 6)
+- Implementation of AI-based project matching algorithm.  
+- Initial version will use keyword and skill matching, with scope for future ML improvements.  
+
+## Phase 6: Escrow Payment Simulation (Week 6)
+- Development of a simulated payment gateway for escrow-based transactions.  
+- Demonstrates secure transaction flow without handling real money.  
+
+## Phase 7: Testing & Debugging (Week 7)
+- Unit testing and integration testing.  
+- Debugging and fixing issues to ensure stability and reliability.  
+
+## Phase 8: Deployment & Documentation (Week 10)
+- Finalization of GitHub repository with clean code structure.  
+- Preparation of project report and final PPT.  
+- Deployment of backend and frontend using Render and MongoDB Atlas.  
+
 
 ## References
 - M. S. Arefin and M. S. Hossain, “Development of an intelligent job recommender system for freelancers using client’s feedback classification and association rule mining techniques,” 2019.  
