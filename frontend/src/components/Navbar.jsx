@@ -5,6 +5,17 @@ export default function Navbar(){
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || 'null');
 
+// inside Navbar.jsx (useEffect)
+useEffect(()=>{
+  const token = localStorage.getItem('token');
+  if(!token) return;
+  api.get('/notifications').then(res => {
+    const unread = res.data.filter(n=>!n.read).length;
+    setUnread(unread);
+  }).catch(()=>{});
+}, []);
+
+  
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -26,6 +37,8 @@ export default function Navbar(){
             <>
               <Link to="/login" className="text-sm bg-blue-500 text-white px-3 py-1 rounded">Login</Link>
               <Link to="/register" className="ml-2 text-sm bg-green-500 text-white px-3 py-1 rounded">Register</Link>
+              <Link to="/notifications" className="...">Notifications {unread>0 && <span className="ml-1 bg-red-500 text-white rounded-full px-2 text-xs">{unread}</span>}</Link>
+
             </>
           ) : (
             <>
