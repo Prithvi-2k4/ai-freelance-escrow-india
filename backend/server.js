@@ -94,6 +94,13 @@ async function startDBWithRetries(retries = 10, delayMs = 5000) {
 
 startDBWithRetries();
 
+let notifyUser = async () => {};
+try {
+  notifyUser = require('./utils/notify');
+} catch (e) {
+  console.warn('notify util not loaded (continuing without email notifications):', e.message);
+}
+
 // Graceful shutdown
 async function shutdown(signal) {
   try {
