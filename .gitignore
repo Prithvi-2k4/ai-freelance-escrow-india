@@ -1,0 +1,12 @@
+# node
+node_modules/
+**/node_modules/
+
+# local envs
+.env
+frontend/.env
+backend/.env
+
+# build folders
+frontend/build
+dist
