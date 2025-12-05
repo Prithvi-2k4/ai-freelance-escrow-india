@@ -9,6 +9,9 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Notifications from "./pages/Notifications";
 import JobDetails from './pages/JobDetails';
+import Chat from './pages/Chat';
+
+
 
 export default function App(){
   return (
@@ -31,6 +34,7 @@ export default function App(){
             <Route path="/login" element={<Login/>} />
             <Route path="/register" element={<Register/>} />
             <Route path="/jobs/:id" element={<ProtectedRoute><JobDetails/></ProtectedRoute>} />
+            <Route path="/chat/:roomId" element={<ProtectedRoute><Chat/></ProtectedRoute>} />
           </Routes>
         </main>
       </div>
