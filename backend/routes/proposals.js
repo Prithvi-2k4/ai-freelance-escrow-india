@@ -4,8 +4,6 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Proposal = require('../models/Proposal');
 const Job = require('../models/Job');
-const User = require('../models/User'); // ensure you have a User model
-const notifyUser = require('../utils/notify');
 
 // apply to a job
 router.post('/:jobId', auth, async (req, res) => {
@@ -21,26 +19,7 @@ router.post('/:jobId', auth, async (req, res) => {
       bid
     });
 
-    // Notify job owner (in-app + optional email)
-    try {
-      const owner = await User.findById(job.createdBy);
-      const ownerEmail = owner?.email || null;
-      const title = 'New proposal received';
-      const body = `You received a new proposal for "${job.title}"`;
-
-      // create in-app notification + optionally send email
-      await notifyUser(owner._id, title, body, ownerEmail);
-
-      // emit real-time notification via socket.io if available
-      const io = req.app.get('io');
-      if (io) {
-        // Emit to a room named after the owner's user id (you can change convention)
-        io.to(String(owner._id)).emit('notification', { title, body, jobId: job._id, type: 'proposal' });
-      }
-    } catch (nerr) {
-      console.warn('notifyUser error (non-fatal):', nerr && nerr.message ? nerr.message : nerr);
-    }
-
+    // plain response — notifications/emails removed
     res.json(p);
   } catch (e) {
     console.error('POST /proposals/:jobId error', e);
@@ -80,24 +59,7 @@ router.post('/accept/:id', auth, async (req, res) => {
     p.status = 'accepted';
     await p.save();
 
-    // Notify freelancer about acceptance
-    try {
-      const freelancer = await User.findById(p.freelancer._id);
-      const freelancerEmail = freelancer?.email || null;
-      const title = 'Your proposal was accepted';
-      const body = `Your proposal on "${p.job.title}" was accepted by the owner.`;
-
-      await notifyUser(freelancer._id, title, body, freelancerEmail);
-
-      const io = req.app.get('io');
-      if (io) {
-        // notify the freelancer in real-time (room convention: userId)
-        io.to(String(freelancer._id)).emit('notification', { title, body, jobId: p.job._id, type: 'proposal_accepted' });
-      }
-    } catch (nerr) {
-      console.warn('notifyUser error (non-fatal):', nerr && nerr.message ? nerr.message : nerr);
-    }
-
+    // plain response — notifications/emails removed
     res.json(p);
   } catch (e) {
     console.error('POST /proposals/accept/:id error', e);
