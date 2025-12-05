@@ -12,6 +12,10 @@ const proposalRoutes = require('./routes/proposals');
 
 const app = express();
 
+const notificationRoutes = require("./routes/notifications");
+app.use("/api/notifications", notificationRoutes);
+
+
 // Basic middleware
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json({ limit: '10mb' }));
