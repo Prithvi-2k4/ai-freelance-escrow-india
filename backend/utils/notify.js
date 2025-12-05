@@ -32,7 +32,6 @@ async function notifyUser(userId, title, body, email) {
       });
     }
   } catch (err) {
-    // do not throw — log and continue
     console.error('notifyUser error:', err && err.message ? err.message : err);
   }
 }
