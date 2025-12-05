@@ -1,44 +1,42 @@
+// backend/routes/proposals.js
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Proposal = require('../models/Proposal');
 const Job = require('../models/Job');
-const Transaction = require('../models/Transaction');
 
-router.post('/', auth, async (req,res)=>{
-  try{
-    const p = await Proposal.create({ ...req.body, freelancer: req.user.id });
+// apply to a job
+router.post('/:jobId', auth, async (req,res) => {
+  try {
+    const { cover, bid } = req.body;
+    const p = await Proposal.create({ job: req.params.jobId, freelancer: req.user.id, cover, bid });
+    // optionally notify owner via utils/notify
     res.json(p);
-  }catch(e){console.error(e); res.status(500).json({msg:'err'})}
+  } catch(e){ res.status(500).json({ msg: e.message }); }
 });
 
-router.post('/:id/accept', auth, async (req,res)=>{
-  try{
-    const proposal = await Proposal.findById(req.params.id).populate('job');
-    if(!proposal) return res.status(404).json({msg:'No proposal'});
-    proposal.accepted = true;
-    await proposal.save();
-    const tx = await Transaction.create({
-      job: proposal.job._id,
-      client: proposal.job.client,
-      freelancer: proposal.freelancer,
-      amount: proposal.bid,
-      upiRef: 'UPI-MOCK-'+Date.now()
-    });
-    await Job.findByIdAndUpdate(proposal.job._id,{status:'in_progress'});
-    res.json({proposal, tx});
-  }catch(e){console.error(e); res.status(500).json({msg:'err'})}
+// get proposals for job (owner or freelancer)
+router.get('/job/:jobId', auth, async (req,res) => {
+  try {
+    const job = await Job.findById(req.params.jobId);
+    if(!job) return res.status(404).json({ msg:'Job not found' });
+    // owner sees all proposals; freelancer sees only their own
+    const filter = req.user.id === String(job.createdBy) ? { job: req.params.jobId } : { job: req.params.jobId, freelancer: req.user.id };
+    const proposals = await Proposal.find(filter).populate('freelancer','name email');
+    res.json(proposals);
+  } catch(e){ res.status(500).json({ msg: e.message }); }
 });
 
-router.post('/:txId/release', auth, async (req,res)=>{
-  try{
-    const tx = await Transaction.findById(req.params.txId);
-    if(!tx) return res.status(404).json({msg:'No tx'});
-    tx.status='released';
-    await tx.save();
-    await Job.findByIdAndUpdate(tx.job, {status:'completed'});
-    res.json(tx);
-  }catch(e){console.error(e); res.status(500).json({msg:'err'})}
+// owner accepts a proposal
+router.post('/accept/:id', auth, async (req,res) => {
+  try {
+    const p = await Proposal.findById(req.params.id).populate('job');
+    if(!p) return res.status(404).json({ msg:'Proposal not found' });
+    if(String(p.job.createdBy) !== req.user.id) return res.status(403).json({ msg:'Not allowed' });
+    p.status = 'accepted';
+    await p.save();
+    res.json(p);
+  } catch(e){ res.status(500).json({ msg: e.message }); }
 });
 
 module.exports = router;
