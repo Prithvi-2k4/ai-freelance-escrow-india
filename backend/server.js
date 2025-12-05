@@ -15,7 +15,7 @@ const app = express();
 const notificationRoutes = require("./routes/notifications");
 app.use("/api/notifications", notificationRoutes);
 
-const notifyUser = require('../utils/notify');
+const notifyUser = require('./utils/notify');
 // inside proposal creation (ownerId and ownerEmail must be known)
 notifyUser(ownerId, 'New proposal', `You have a new proposal on ${job.title}`, ownerEmail);
 
