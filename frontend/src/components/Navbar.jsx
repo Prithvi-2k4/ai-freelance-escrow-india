@@ -17,18 +17,20 @@ export default function Navbar(){
         <div>
           <Link to="/" className="text-xl font-semibold text-brand-700">WorkLink</Link>
         </div>
-        <div className="space-x-4">
+        <div className="space-x-4 flex items-center">
           <Link className="text-sm text-gray-600 hover:text-gray-900" to="/jobs">Jobs</Link>
           <Link className="text-sm text-gray-600 hover:text-gray-900" to="/post">Post Job</Link>
           <Link className="text-sm text-gray-600 hover:text-gray-900" to="/dashboard">Dashboard</Link>
-          {user ? (
+
+          {!user ? (
             <>
-              <span className="text-sm px-2">{user.name}</span>
-              <button onClick={logout} className="text-sm bg-red-500 text-white px-3 py-1 rounded">Logout</button>
+              <Link to="/login" className="text-sm bg-blue-500 text-white px-3 py-1 rounded">Login</Link>
+              <Link to="/register" className="ml-2 text-sm bg-green-500 text-white px-3 py-1 rounded">Register</Link>
             </>
           ) : (
             <>
-              <Link to="/login" className="text-sm bg-blue-500 text-white px-3 py-1 rounded">Login</Link>
+              <span className="text-sm px-2">{user.name}</span>
+              <button onClick={logout} className="text-sm bg-red-500 text-white px-3 py-1 rounded">Logout</button>
             </>
           )}
         </div>
