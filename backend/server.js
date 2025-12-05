@@ -15,7 +15,6 @@ const app = express();
 const notificationRoutes = require("./routes/notifications");
 app.use("/api/notifications", notificationRoutes);
 
-const notifyUser = require('./utils/notify');
 // inside proposal creation (ownerId and ownerEmail must be known)
 notifyUser(ownerId, 'New proposal', `You have a new proposal on ${job.title}`, ownerEmail);
 
@@ -95,15 +94,14 @@ async function startDBWithRetries(retries = 10, delayMs = 5000) {
 startDBWithRetries();
 
 // safe require for notify util (one declaration only)
+// safe require for notify util (one declaration only)
 let notifyUser;
 try {
-  notifyUser = require('./utils/notify'); // correct relative path from server.js
+  notifyUser = require('./utils/notify'); // correct relative path
 } catch (e) {
   console.warn('notify util not loaded (continuing without email notifications):', e.message);
-  // fallback no-op so calling code won't crash
-  notifyUser = async () => {};
+  notifyUser = async () => {}; // safe no-op
 }
-
 
 // Graceful shutdown
 async function shutdown(signal) {
