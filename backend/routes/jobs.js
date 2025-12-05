@@ -1,32 +1,29 @@
+// backend/routes/jobs.js
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const auth = require('../middleware/auth'); // your auth
 const Job = require('../models/Job');
-const ai = require('../services/aiService');
+const upload = require('../middleware/upload');
 
-router.post('/', auth, async (req,res)=>{
-  try{
-    const job = await Job.create({ ...req.body, client: req.user.id });
+// create job with files
+router.post('/', auth, upload.array('attachments', 5), async (req, res) => {
+  try {
+    const { title, description, budget, skills } = req.body;
+    const skillsArr = skills ? (typeof skills === 'string' ? JSON.parse(skills) : skills) : [];
+    const files = (req.files || []).map(f => ({
+      url: f.path || f.secure_url || f.url,
+      public_id: f.filename || f.public_id,
+      filename: f.originalname || f.name
+    }));
+    const job = await Job.create({
+      title, description, budget, skills: skillsArr, attachments: files, createdBy: req.user.id
+    });
     res.json(job);
-  }catch(e){console.error(e); res.status(500).json({msg:'err'});}
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: err.message });
+  }
 });
 
-router.get('/', async (req,res)=> {
-  const jobs = await Job.find().populate('client','name');
-  res.json(jobs);
-});
-
-router.get('/:id', async (req,res)=> {
-  const job = await Job.findById(req.params.id).populate('client','name email');
-  if(!job) return res.status(404).json({msg:'No job'});
-  res.json(job);
-});
-
-router.get('/:id/recommend', async (req,res)=>{
-  const job = await Job.findById(req.params.id);
-  if(!job) return res.status(404).json({msg:'No job'});
-  const suggestions = await ai.recommendFreelancers(job);
-  res.json({job, suggestions});
-});
-
+// existing routes...
 module.exports = router;
