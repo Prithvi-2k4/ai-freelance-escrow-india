@@ -7,6 +7,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import Notifications from "./pages/Notifications";
+
+
 
 export default function App(){
   return (
@@ -19,6 +22,9 @@ export default function App(){
             <Route path="/jobs" element={<JobsList />} />
             <Route path="/post" element={
               <ProtectedRoute><PostJob/></ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute><Notifications /></ProtectedRoute>
             } />
             <Route path="/dashboard" element={
               <ProtectedRoute><Dashboard/></ProtectedRoute>
