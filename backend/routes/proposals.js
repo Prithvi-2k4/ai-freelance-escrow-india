@@ -5,7 +5,7 @@ const auth = require('../middleware/auth');
 const Proposal = require('../models/Proposal');
 const Job = require('../models/Job');
 const User = require('../models/User'); // ensure you have a User model
-const notifyUser = require('../utils/notify'); // backend/utils/notify.js
+const notifyUser = require('../utils/notify');
 
 // apply to a job
 router.post('/:jobId', auth, async (req, res) => {
