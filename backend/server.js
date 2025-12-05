@@ -94,12 +94,16 @@ async function startDBWithRetries(retries = 10, delayMs = 5000) {
 
 startDBWithRetries();
 
-let notifyUser = async () => {};
+// safe require for notify util (one declaration only)
+let notifyUser;
 try {
-  notifyUser = require('./utils/notify');
+  notifyUser = require('./utils/notify'); // correct relative path from server.js
 } catch (e) {
   console.warn('notify util not loaded (continuing without email notifications):', e.message);
+  // fallback no-op so calling code won't crash
+  notifyUser = async () => {};
 }
+
 
 // Graceful shutdown
 async function shutdown(signal) {
