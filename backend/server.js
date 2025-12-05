@@ -15,6 +15,7 @@ const app = express();
 const notificationRoutes = require("./routes/notifications");
 app.use("/api/notifications", notificationRoutes);
 
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Basic middleware
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
