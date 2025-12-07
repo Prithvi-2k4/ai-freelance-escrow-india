@@ -1,8 +1,19 @@
 import axios from 'axios';
 
-const base = process.env.REACT_APP_API || window.REACT_APP_API || ''; // set in env
+const DEFAULT_BASE = 'https://worklink-070f.onrender.com'; // correct URL
+
+// use env var if present, otherwise fallback
+const base =
+  process.env.REACT_APP_API ||
+  window.REACT_APP_API ||
+  process.env.REACT_APP_API_URL || // in case you use VITE/other name
+  DEFAULT_BASE;
+
+// normalize (no trailing slash)
+const cleanBase = base.replace(/\/+$/,'');
+
 const api = axios.create({
-  baseURL: base.endsWith('/') ? base + 'api' : base + '/api',
+  baseURL: `${cleanBase}/api`,
   timeout: 10000,
 });
 
