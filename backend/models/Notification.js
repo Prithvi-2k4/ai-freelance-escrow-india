@@ -1,12 +1,11 @@
-// backend/models/Notification.js
 const mongoose = require('mongoose');
 
-const notifSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  title: { type: String, required: true },
-  body: { type: String, required: true },
+const NotificationSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  title: String,
+  body: String,
   read: { type: Boolean, default: false },
-  meta: { type: Object, default: {} }
+  meta: Object,
 }, { timestamps: true });
 
-module.exports = mongoose.model('Notification', notifSchema);
+module.exports = mongoose.model('Notification', NotificationSchema);
