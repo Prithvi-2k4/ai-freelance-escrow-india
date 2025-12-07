@@ -1,3 +1,3 @@
-// compatibility wrapper so old imports ../api/axios still work
+// frontend/src/api/axios.js
 import api from './api';
 export default api;
