@@ -17,12 +17,6 @@ export default function Navbar(){
         if (!mounted) return;
         const list = Array.isArray(res.data) ? res.data : [];
         setUnread(list.filter(n => !n.read).length);
-      } catch (err) {
-        console.warn('failed to load notifications', {
-          status: err?.response?.status,
-          data: err?.response?.data,
-          message: err?.message
-        });
       }
     };
 
