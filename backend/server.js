@@ -11,47 +11,42 @@ const proposalRoutes = require('./routes/proposals');
 
 const app = express();
 
-// build a whitelist from FRONTEND_URL env (comma separated)
+// --- CORS setup ---
+// Accept a comma-separated list in FRONTEND_URL env var, e.g:
+// FRONTEND_URL="http://localhost:3000,https://worklink-070f.onrender.com,https://your-vercel.netlify.app"
 const raw = process.env.FRONTEND_URL || '';
-const whitelist = raw.split(',').map(s => s.trim()).filter(Boolean);
+const allowedOrigins = raw
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
-// simple debug log so you can see what origins are allowed in logs
-console.log('CORS whitelist:', whitelist.length ? whitelist : '[none - allow all]');
-
-// CORS options: if whitelist is empty => allow all (*) - useful for quick dev
-const corsOptions = (req, callback) => {
-  const origin = req.header('Origin');
-  if (!origin) {
-    // non-browser request (curl, server-side) — allow it
-    return callback(null, { origin: true });
-  }
-
-  if (whitelist.length === 0) {
-    // no whitelist => allow all (dev)
-    return callback(null, { origin: true });
-  }
-
-  // allow exact match OR allow if origin is in whitelist
-  if (whitelist.includes(origin)) {
-    return callback(null, { origin: true, credentials: true });
-  }
-
-  // Not allowed
-  const msg = `CORS Not Allowed for origin: ${origin}`;
-  return callback(new Error(msg), { origin: false });
+// helper to check origin and allow dynamically
+const corsOptions = {
+  origin: function (origin, callback) {
+    // browser sends `origin` string for cross-origin requests; for tools like curl origin may be undefined
+    if (!origin) {
+      // allow non-browser requests (curl/postman) — change to `callback(new Error('Not allowed'))` to block
+      return callback(null, true);
+    }
+    // if wildcard set or empty allowedOrigins -> allow all (only for dev; be careful)
+    if (allowedOrigins.length === 0 || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    console.warn('CORS Not Allowed for origin:', origin);
+    return callback(new Error('CORS Not Allowed'));
+  },
+  // if you need cookies / auth across origins, set credentials: true and make sure you do not use '*' origin
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS']
 };
 
-// attach CORS middleware (use function so preflight is checked)
-app.use((req, res, next) => {
-  cors(corsOptions)(req, res, err => {
-    if (err) {
-      // optional: log and respond for preflight/blocked origins
-      console.warn(err.message);
-      return res.status(403).json({ msg: 'CORS Not Allowed', detail: err.message });
-    }
-    next();
-  });
-});
+app.use(cors(corsOptions));
+
+// optional: allow pre-flight for all routes
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 
@@ -60,7 +55,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/proposals', proposalRoutes);
 
-// Optional: serve frontend build if you have a single repo deploy
+// Optional: serve frontend build if you have a single repo deploy (set SERVE_FRONTEND=true)
 if (process.env.SERVE_FRONTEND === 'true') {
   app.use(express.static(path.join(__dirname, '..', 'frontend', 'build')));
   app.get('*', (req, res) =>
@@ -75,6 +70,7 @@ connectDB()
     app.listen(PORT, () => {
       console.log('MongoDB connected');
       console.log('Server running', PORT);
+      console.log('Allowed CORS origins:', allowedOrigins.length ? allowedOrigins : 'ALL (no FRONTEND_URL set)');
     });
   })
   .catch((err) => {
