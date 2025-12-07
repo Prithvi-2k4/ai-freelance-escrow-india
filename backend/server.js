@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
+const allowed = (process.env.FRONTEND_URL || '').split(',').map(s=>s.trim()).filter(Boolean);
 const path = require('path');
 
 const authRoutes = require('./routes/auth');
@@ -24,23 +25,13 @@ if (process.env.FRONTEND_URL && !ALLOWED_ORIGINS.includes(process.env.FRONTEND_U
   ALLOWED_ORIGINS.push(process.env.FRONTEND_URL);
 }
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow server-to-server or CLI access (no origin)
-      if (!origin) return callback(null, true);
-
-      if (ALLOWED_ORIGINS.includes(origin)) {
-        return callback(null, true);
-      }
-
-      console.warn("[CORS] Blocked:", origin, "| Allowed:", ALLOWED_ORIGINS);
-      return callback(new Error("CORS Not Allowed"));
-    },
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: false,
-  })
-);
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // allow non-browser tools
+    if (allowed.length === 0 || allowed.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  }
+}));
 
 
 app.use(express.json());
