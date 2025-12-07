@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/api'; // adjust path if your api client file is elsewhere
+import api from './api/api'; // adjust path if your api client file is elsewhere
 
 
 export default function Navbar() {
