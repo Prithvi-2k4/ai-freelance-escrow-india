@@ -1,6 +1,7 @@
+// frontend/src/pages/JobsList.jsx
 import React, { useEffect, useState } from 'react';
+import api from '../api/api'; // make sure this path matches your project
 import { Link } from 'react-router-dom';
-import api from '../api/api'; // same client you use in Login.jsx
 
 export default function JobsList() {
   const [jobs, setJobs] = useState([]);
@@ -10,18 +11,13 @@ export default function JobsList() {
   useEffect(() => {
     let mounted = true;
 
-    const load = async () => {
+    async function load() {
       setLoading(true);
       setErr(null);
       try {
-        const res = await api.get('/jobs'); // adjust path if your backend uses a different route
-        // debug the raw payload so you can adapt quickly
-        console.log('GET /jobs response:', res && res.data ? res.data : res);
+        const res = await api.get('/jobs'); // adjust path if your backend uses another route
+        console.log('GET /jobs raw response:', res);
 
-        // Normalize to an array:
-        // - If res.data is an array -> use it
-        // - else if res.data.jobs is an array -> use that
-        // - else fallback to empty array
         const raw = res?.data;
         const arr = Array.isArray(raw)
           ? raw
@@ -37,7 +33,7 @@ export default function JobsList() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
+    }
 
     load();
     return () => { mounted = false; };
