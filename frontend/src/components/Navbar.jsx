@@ -1,41 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from './api/api'; // adjust path if your api client file is elsewhere
+import api from '../api/api'; // adjust path
 
-
-export default function Navbar() {
+export default function Navbar(){
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || 'null');
 
-  // notification badge state (declare BEFORE useEffect)
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     let mounted = true;
-
     const loadUnread = async () => {
       try {
-        const res = await api.get('/notifications'); // make sure api base URL is correct
+        const res = await api.get('/notifications');
         if (!mounted) return;
         const list = Array.isArray(res.data) ? res.data : [];
         setUnread(list.filter(n => !n.read).length);
       } catch (err) {
         console.warn('failed to load notifications', err?.message || err);
-        // keep unread as 0 on error
       }
     };
-
     loadUnread();
 
-    // optional: socket.io realtime increment (only if you set window.__APP_IO__ or similar)
     const io = window.__APP_IO__ || null;
     if (io && io.on) {
       const handler = () => setUnread(prev => prev + 1);
       io.on('notification', handler);
-      return () => {
-        mounted = false;
-        io.off('notification', handler);
-      };
+      return () => { mounted = false; io.off('notification', handler); };
     }
 
     return () => { mounted = false; };
@@ -50,14 +41,11 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div>
-          <Link to="/" className="text-xl font-semibold text-brand-700">WorkLink</Link>
-        </div>
-
+        <div><Link to="/" className="text-xl font-semibold text-brand-700">WorkLink</Link></div>
         <div className="space-x-4 flex items-center">
-          <Link className="text-sm text-gray-600 hover:text-gray-900" to="/jobs">Jobs</Link>
-          <Link className="text-sm text-gray-600 hover:text-gray-900" to="/post">Post Job</Link>
-          <Link className="text-sm text-gray-600 hover:text-gray-900" to="/dashboard">Dashboard</Link>
+          <Link to="/jobs" className="text-sm text-gray-600 hover:text-gray-900">Jobs</Link>
+          <Link to="/post" className="text-sm text-gray-600 hover:text-gray-900">Post Job</Link>
+          <Link to="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">Dashboard</Link>
 
           {!user ? (
             <>
