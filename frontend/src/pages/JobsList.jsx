@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api/api'; // your centralized axios instance
+import api from '../api/api'; // axios instance with baseURL: https://worklink-070f.onrender.com/api
 import { Link } from 'react-router-dom';
 
 export default function JobsList() {
@@ -9,17 +9,12 @@ export default function JobsList() {
 
   useEffect(() => {
     let mounted = true;
+    const controller = new AbortController();
 
     async function loadJobs() {
       try {
         setErr(null);
-        const res = await api.get('/jobs'); // ensure api.baseURL points to your backend
-        // console.log('GET /jobs raw response:', res);
-
-        // normalize possible shapes:
-        // 1) res.data is an array -> use it
-        // 2) res.data = { jobs: [...] } -> use res.data.jobs
-        // 3) res.data = null/other -> fallback to []
+        const res = await api.get('/jobs', { signal: controller.signal }); // resolves to /api/jobs
         const raw = res?.data;
         const arr = Array.isArray(raw)
           ? raw
@@ -28,8 +23,13 @@ export default function JobsList() {
         if (!mounted) return;
         setJobs(arr);
       } catch (e) {
-        if (!mounted) return;
-        console.error('Failed to fetch jobs', e);
+        if (!mounted || e.name === 'CanceledError' || e.name === 'AbortError') return;
+        console.error('Failed to fetch jobs', {
+          status: e?.response?.status,
+          data: e?.response?.data,
+          message: e?.message,
+          url: `${api?.defaults?.baseURL || ''}/jobs`
+        });
         setErr(e?.response?.data?.msg || e?.message || 'Failed to load jobs');
         setJobs([]);
       } finally {
@@ -38,7 +38,10 @@ export default function JobsList() {
     }
 
     loadJobs();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
   }, []);
 
   if (loading) return <div className="p-6">Loading jobs...</div>;
@@ -60,7 +63,9 @@ export default function JobsList() {
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="text-xl font-semibold">{job.title || 'Untitled'}</h2>
-                  <p className="text-sm text-gray-600">{job.company || job.description || ''}</p>
+                  <p className="text-sm text-gray-600">
+                    {job.company || job.description || ''}
+                  </p>
                 </div>
                 <div className="text-right">
                   <Link to={`/jobs/${job._id || job.id}`} className="text-blue-600">View</Link>
