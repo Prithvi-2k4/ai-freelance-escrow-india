@@ -3,32 +3,64 @@ import React, { useState } from 'react';
 import api from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
-export default function Register(){
-  const [form, setForm] = useState({ name:'', email:'', password:'', role:'freelancer' });
+export default function Register() {
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'freelancer',
+  });
   const [err, setErr] = useState('');
   const [ok, setOk] = useState('');
+  const [loading, setLoading] = useState(false);
   const nav = useNavigate();
 
-  const onChange = e => {
+  const onChange = (e) => {
     setErr('');
     setOk('');
-    setForm(s => ({ ...s, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((s) => ({ ...s, [name]: value }));
   };
 
-  const submit = async e => {
+  const submit = async (e) => {
     e.preventDefault();
     setErr('');
     setOk('');
+    setLoading(true);
+
     try {
-      const res = await api.post('/auth/register', form);
-      // If your backend returns a message:
-      setOk(res.data?.message || 'Registered successfully. Please login.');
-      // optional: redirect after short delay
+      // normalize role before sending
+      const payload = {
+        ...form,
+        role: (form.role || '').toString().trim().toLowerCase(),
+      };
+
+      const res = await api.post('/auth/register', payload);
+
+      // If backend returns a token -> auto-login & go dashboard
+      if (res?.data?.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        nav('/dashboard');
+        return;
+      }
+
+      // Otherwise show success message and redirect to login
+      const message = res?.data?.message || res?.data?.ok || 'Registered successfully. Please login.';
+      setOk(message);
+      // short delay so user sees success toast then redirect
       setTimeout(() => nav('/login'), 900);
     } catch (error) {
-      // axios error handling
-      const message = error?.response?.data?.error || error?.response?.data?.msg || error?.message || 'Registration failed';
+      const message =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.response?.data?.msg ||
+        (typeof error?.response?.data === 'string' ? error.response.data : null) ||
+        error?.message ||
+        'Registration failed';
       setErr(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,8 +114,12 @@ export default function Register(){
           </select>
         </div>
 
-        <button className="w-full bg-brand-500 text-white py-2 rounded" type="submit">
-          Register
+        <button
+          className={`w-full ${loading ? 'opacity-70 cursor-not-allowed' : 'bg-brand-500'} text-white py-2 rounded`}
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? 'Registering...' : 'Register'}
         </button>
       </form>
     </div>
