@@ -1,7 +1,7 @@
-// src/components/Navbar.jsx  (or wherever your navbar lives)
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/api'; // <- adjust path if needed (e.g. ../api/axios or ./api)
+import api from '../api/api'; // adjust path if your api client file is elsewhere
+
 
 export default function Navbar() {
   const navigate = useNavigate();
