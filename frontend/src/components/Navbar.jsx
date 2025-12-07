@@ -22,6 +22,20 @@ export default function Navbar(){
     };
     loadUnread();
 
+    try {
+  const res = await axios.get(`${API_BASE_URL}/notifications`);
+  setNotifications(res.data);
+} catch (err) {
+  console.error('failed to load notifications', {
+    status: err.response?.status,
+    data: err.response?.data,
+    url: `${API_BASE_URL}/notifications`,
+    message: err.message
+  });
+  setNotifError('Notifications are unavailable right now.');
+}
+
+
     const io = window.__APP_IO__ || null;
     if (io && io.on) {
       const handler = () => setUnread(prev => prev + 1);
