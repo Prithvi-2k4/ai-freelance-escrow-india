@@ -40,7 +40,7 @@ app.use(require('cors')(corsOptions));
 app.options('*', require('cors')(corsOptions)); // preflight
 
 
-// API routes (namespace all with /api)
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/proposals', proposalRoutes);
