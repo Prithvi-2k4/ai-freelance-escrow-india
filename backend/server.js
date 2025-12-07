@@ -12,20 +12,33 @@ const notifRoutes = require('./routes/notifications');
 const app = express();
 app.use(express.json());
 
-// Flexible CORS: allow FRONTEND_URLs or allow all in dev
-const allowed = (process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
+// CORS: allow a comma-separated list of origins via FRONTEND_URL env var
+const rawOrigins = (process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
+
 const corsOptions = {
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // allow server-to-server or curl
-    if (allowed.length === 0 || allowed.includes(origin)) return cb(null, true);
-    // allow localhost during local dev
-    if (origin.includes('localhost')) return cb(null, true);
-    console.log('CORS Not Allowed for origin:', origin);
-    cb(new Error('CORS Not Allowed'));
+  origin: function (origin, callback) {
+    // origin === undefined for server-to-server requests (curl/postman), allow those
+    if (!origin) return callback(null, true);
+
+    // allow localhost for local testing
+    if (origin.includes('localhost')) return callback(null, true);
+
+    // if no FRONTEND_URL specified -> allow all (dev). Remove this in prod if you want strictness.
+    if (rawOrigins.length === 0 || rawOrigins.includes('*')) return callback(null, true);
+
+    if (rawOrigins.includes(origin)) return callback(null, true);
+
+    console.warn('CORS Not Allowed for origin:', origin);
+    return callback(new Error('CORS Not Allowed'));
   },
-  credentials: true,
+  credentials: true, // set true if client sends cookies/withCredentials
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','Accept','X-Requested-With']
 };
-app.use(cors(corsOptions));
+
+app.use(require('cors')(corsOptions));
+app.options('*', require('cors')(corsOptions)); // preflight
+
 
 // API routes (namespace all with /api)
 app.use('/api/auth', authRoutes);
