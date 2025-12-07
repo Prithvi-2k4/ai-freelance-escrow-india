@@ -2,14 +2,12 @@ import axios from 'axios';
 
 const DEFAULT_BASE = 'https://worklink-070f.onrender.com'; // correct URL
 
-// use env var if present, otherwise fallback
 const base =
   process.env.REACT_APP_API ||
   window.REACT_APP_API ||
-  process.env.REACT_APP_API_URL || // in case you use VITE/other name
+  process.env.REACT_APP_API_URL ||
   DEFAULT_BASE;
 
-// normalize (no trailing slash)
 const cleanBase = base.replace(/\/+$/,'');
 
 const api = axios.create({
@@ -23,4 +21,5 @@ api.interceptors.request.use(cfg => {
   return cfg;
 });
 
+console.log('Using API baseURL =', api.defaults.baseURL); // debug log
 export default api;
