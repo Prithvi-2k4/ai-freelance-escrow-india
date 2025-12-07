@@ -1,23 +1,22 @@
-// simple notifications route example
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const Notification = require('../models/Notification'); // optional - if you have a model
-const notificationRoutes = require('./routes/notifications');
-app.use('/api/notifications', notificationRoutes);
+const Notification = require('../models/Notification');
 
-// GET /api/notifications - list notifications for the logged-in user
+// get current user's notifications
 router.get('/', auth, async (req, res) => {
   try {
-    // if you have a Notification model:
-    // const notifications = await Notification.find({ user: req.user.id }).sort({ createdAt: -1 });
-    // If not, return an empty array for now
-    const notifications = []; // fallback
-    return res.json(notifications);
-  } catch (e) {
-    console.error('GET /api/notifications error', e);
-    return res.status(500).json({ msg: 'Server error' });
-  }
+    const list = await Notification.find({ user: req.user.id }).sort({ createdAt: -1 }).limit(50);
+    res.json(list);
+  } catch (e) { res.status(500).json({ msg: e.message }); }
+});
+
+// mark as read
+router.post('/read/:id', auth, async (req, res) => {
+  try {
+    const n = await Notification.findOneAndUpdate({ _id: req.params.id, user: req.user.id }, { read: true }, { new: true });
+    res.json(n);
+  } catch (e) { res.status(500).json({ msg: e.message }); }
 });
 
 module.exports = router;
