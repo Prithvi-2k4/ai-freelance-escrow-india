@@ -11,6 +11,8 @@ const proposalRoutes = require('./routes/proposals');
 
 const app = express();
 
+const notificationsRoutes = require('./routes/notifications'); // add near other routes
+app.use('/api/notifications', notificationsRoutes);
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
