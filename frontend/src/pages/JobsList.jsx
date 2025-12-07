@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 export default function JobsList() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const arr = Array.isArray(res.data) ? res.data : (res.data && Array.isArray(res.data.jobs) ? res.data.jobs : []);
 
   useEffect(() => {
     api.get('/jobs')
