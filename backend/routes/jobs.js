@@ -2,18 +2,20 @@
 const express = require('express');
 const router = express.Router();
 
-// GET /api/jobs — list jobs (placeholder)
 router.get('/jobs', async (req, res) => {
-  try {
-    const sample = [
-      { _id: '1', title: 'Test job #1', description: 'Placeholder' },
-      { _id: '2', title: 'Test job #2', description: 'Placeholder' }
-    ];
-    return res.json(sample);
-  } catch (e) {
-    console.error('jobs route error', e);
-    return res.status(500).json({ msg: e.message || 'Server error' });
-  }
+  res.json([
+    { _id: '1', title: 'Test job #1', description: 'Placeholder' },
+    { _id: '2', title: 'Test job #2', description: 'Placeholder' },
+  ]);
 });
 
 module.exports = router;
+
+// backend/server.js
+const express = require('express');
+const app = express();
+const jobsRouter = require('./routes/jobs');
+
+app.use('/api', jobsRouter); // -> GET /api/jobs
+
+app.listen(process.env.PORT || 3000);
