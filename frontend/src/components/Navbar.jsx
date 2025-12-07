@@ -1,40 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/api'; // adjust path
+import api from '../api/api'; // configured with baseURL like https://worklink-070f.onrender.com/api
 
 export default function Navbar(){
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || 'null');
-
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     let mounted = true;
+
     const loadUnread = async () => {
       try {
+        // Adjust path if your backend uses /api/notifications
         const res = await api.get('/notifications');
         if (!mounted) return;
         const list = Array.isArray(res.data) ? res.data : [];
         setUnread(list.filter(n => !n.read).length);
       } catch (err) {
-        console.warn('failed to load notifications', err?.message || err);
+        console.warn('failed to load notifications', {
+          status: err?.response?.status,
+          data: err?.response?.data,
+          message: err?.message
+        });
       }
     };
+
     loadUnread();
-
-    try {
-  const res = await axios.get(`${API_BASE_URL}/notifications`);
-  setNotifications(res.data);
-} catch (err) {
-  console.error('failed to load notifications', {
-    status: err.response?.status,
-    data: err.response?.data,
-    url: `${API_BASE_URL}/notifications`,
-    message: err.message
-  });
-  setNotifError('Notifications are unavailable right now.');
-}
-
 
     const io = window.__APP_IO__ || null;
     if (io && io.on) {
