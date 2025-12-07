@@ -1,35 +1,65 @@
+// src/components/Register.jsx
 import React, { useState } from 'react';
-import api from '../api/api';
-import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'freelancer', // default
+  });
   const [err, setErr] = useState('');
-  const nav = useNavigate();
 
-  const submit = async (e) => {
+  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErr('');
     try {
-      const res = await api.post('/auth/register', { name, email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      nav('/dashboard');
-    } catch (e) {
-      setErr(e.response?.data?.msg || 'Register failed');
+      const res = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      // success: redirect or show message
+      console.log('registered', data);
+    } catch (error) {
+      console.error(error);
+      setErr(error.message || 'Registration failed');
     }
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
-      <h2 className="text-2xl font-semibold mb-4">Register</h2>
-      {err && <div className="text-red-600 mb-2">{err}</div>}
-      <form onSubmit={submit} className="space-y-3">
-        <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" className="w-full border p-2 rounded" />
-        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="w-full border p-2 rounded" />
-        <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Password" className="w-full border p-2 rounded" />
-        <button className="w-full bg-brand-500 text-white py-2 rounded">Register</button>
+    <div className="card p-4" style={{maxWidth: 420}}>
+      <h3>Register</h3>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-2">
+          <input name="name" value={form.name} onChange={handleChange} className="form-control" placeholder="Name" required />
+        </div>
+        <div className="mb-2">
+          <input name="email" type="email" value={form.email} onChange={handleChange} className="form-control bg-light" placeholder="Email" required />
+        </div>
+        <div className="mb-2">
+          <input name="password" type="password" value={form.password} onChange={handleChange} className="form-control bg-light" placeholder="Password" required minLength={6} />
+        </div>
+
+        {/* ROLE DROPDOWN */}
+        <div className="mb-3">
+          <label className="form-label">Register as</label>
+          <select name="role" value={form.role} onChange={handleChange} className="form-select" required>
+            <option value="freelancer">Freelancer</option>
+            <option value="client">Client</option>
+          </select>
+        </div>
+
+        {err && <div className="alert alert-danger">{err}</div>}
+
+        <button className="btn btn-primary w-100" type="submit">Register</button>
       </form>
     </div>
   );
