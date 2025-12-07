@@ -1,35 +1,33 @@
-// frontend/src/components/Navbar.jsx
+// src/components/Navbar.jsx  (or wherever your navbar lives)
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/api'; // <-- update path if your api client is elsewhere
+import api from '../api/api'; // <- adjust path if needed (e.g. ../api/axios or ./api)
 
-export default function Navbar(){
+export default function Navbar() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || 'null');
 
+  // notification badge state (declare BEFORE useEffect)
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     let mounted = true;
 
     const loadUnread = async () => {
-      if (!api || !api.get) {
-        setUnread(0);
-        return;
-      }
       try {
-        const res = await api.get('/notifications'); // expects array
+        const res = await api.get('/notifications'); // make sure api base URL is correct
         if (!mounted) return;
         const list = Array.isArray(res.data) ? res.data : [];
         setUnread(list.filter(n => !n.read).length);
       } catch (err) {
         console.warn('failed to load notifications', err?.message || err);
+        // keep unread as 0 on error
       }
     };
 
     loadUnread();
 
-    // optional socket listener (if you expose socket as window.__APP_IO__)
+    // optional: socket.io realtime increment (only if you set window.__APP_IO__ or similar)
     const io = window.__APP_IO__ || null;
     if (io && io.on) {
       const handler = () => setUnread(prev => prev + 1);
@@ -55,22 +53,19 @@ export default function Navbar(){
         <div>
           <Link to="/" className="text-xl font-semibold text-brand-700">WorkLink</Link>
         </div>
+
         <div className="space-x-4 flex items-center">
           <Link className="text-sm text-gray-600 hover:text-gray-900" to="/jobs">Jobs</Link>
           <Link className="text-sm text-gray-600 hover:text-gray-900" to="/post">Post Job</Link>
           <Link className="text-sm text-gray-600 hover:text-gray-900" to="/dashboard">Dashboard</Link>
 
-          {/* Notifications - shown for logged-in users */}
-          {user && (
-            <Link to="/notifications" className="text-sm text-gray-600 hover:text-gray-900">
-              Notifications {unread > 0 && <span className="ml-1 bg-red-500 text-white rounded-full px-2 text-xs">{unread}</span>}
-            </Link>
-          )}
-
           {!user ? (
             <>
               <Link to="/login" className="text-sm bg-blue-500 text-white px-3 py-1 rounded">Login</Link>
               <Link to="/register" className="ml-2 text-sm bg-green-500 text-white px-3 py-1 rounded">Register</Link>
+              <Link to="/notifications" className="ml-2 text-sm text-gray-600 hover:text-gray-900">
+                Notifications {unread > 0 && <span className="ml-1 bg-red-500 text-white rounded-full px-2 text-xs">{unread}</span>}
+              </Link>
             </>
           ) : (
             <>
