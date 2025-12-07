@@ -1,116 +1,91 @@
-// Register.jsx
-import React, { useState } from "react";
+// src/components/Register.jsx
+import React, { useState } from 'react';
+import api from '../api/api';
+import { useNavigate } from 'react-router-dom';
 
-export default function Register() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "freelancer",
-  });
+export default function Register(){
+  const [form, setForm] = useState({ name:'', email:'', password:'', role:'freelancer' });
+  const [err, setErr] = useState('');
+  const [ok, setOk] = useState('');
+  const nav = useNavigate();
 
-  const [error, setError] = useState("");
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const onChange = e => {
+    setErr('');
+    setOk('');
+    setForm(s => ({ ...s, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
+  const submit = async e => {
     e.preventDefault();
-    setError("");
-
+    setErr('');
+    setOk('');
     try {
-      const res = await fetch(
-        `${process.env.REACT_APP_API_URL || ""}/api/auth/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      const txt = await res.text();
-      let body;
-
-      try {
-        body = JSON.parse(txt);
-      } catch {
-        body = { error: txt };
-      }
-
-      if (!res.ok) {
-        setError(body.error || "Registration failed");
-        return;
-      }
-
-      alert("Registered successfully! Now login.");
-    } catch (err) {
-      setError("Something went wrong");
+      const res = await api.post('/auth/register', form);
+      // If your backend returns a message:
+      setOk(res.data?.message || 'Registered successfully. Please login.');
+      // optional: redirect after short delay
+      setTimeout(() => nav('/login'), 900);
+    } catch (error) {
+      // axios error handling
+      const message = error?.response?.data?.error || error?.response?.data?.msg || error?.message || 'Registration failed';
+      setErr(message);
     }
   };
 
   return (
-    <div className="d-flex justify-content-center mt-5">
-      <div className="card p-4" style={{ width: "420px" }}>
-        <h3 className="mb-3">Register</h3>
+    <div className="max-w-md mx-auto bg-white p-6 rounded shadow mt-10">
+      <h2 className="text-2xl font-semibold mb-4">Register</h2>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+      {err && <div className="text-red-600 mb-3">{err}</div>}
+      {ok && <div className="text-green-600 mb-3">{ok}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-2">
-            <input
-              className="form-control"
-              type="text"
-              placeholder="Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
+      <form onSubmit={submit} className="space-y-3">
+        <input
+          name="name"
+          value={form.name}
+          onChange={onChange}
+          placeholder="Name"
+          className="w-full border p-2 rounded"
+          required
+        />
 
-          <div className="mb-2">
-            <input
-              className="form-control bg-light"
-              type="email"
-              placeholder="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <input
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={onChange}
+          placeholder="Email"
+          className="w-full border p-2 rounded bg-slate-50"
+          required
+        />
 
-          <div className="mb-2">
-            <input
-              className="form-control bg-light"
-              type="password"
-              placeholder="Password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <input
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={onChange}
+          placeholder="Password"
+          className="w-full border p-2 rounded bg-slate-50"
+          required
+        />
 
-          <div className="mb-3">
-            <label className="form-label">Register as</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="form-select"
-            >
-              <option value="freelancer">Freelancer</option>
-              <option value="client">Client</option>
-            </select>
-          </div>
+        <div className="flex items-center gap-3">
+          <label className="text-sm">Register as</label>
+          <select
+            name="role"
+            value={form.role}
+            onChange={onChange}
+            className="border p-2 rounded"
+          >
+            <option value="freelancer">Freelancer</option>
+            <option value="client">Client</option>
+          </select>
+        </div>
 
-          <button className="btn btn-primary w-100" type="submit">
-            Register
-          </button>
-        </form>
-      </div>
+        <button className="w-full bg-brand-500 text-white py-2 rounded" type="submit">
+          Register
+        </button>
+      </form>
     </div>
   );
 }
