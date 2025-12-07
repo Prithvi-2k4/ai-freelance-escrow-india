@@ -1,42 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/api'; // configured with baseURL like https://worklink-070f.onrender.com/api
+import api from '../api/api'; // relative to components folder
 
 export default function Navbar(){
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
   const [unread, setUnread] = useState(0);
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
 
   useEffect(() => {
     let mounted = true;
 
+    // only call notifications if user is logged in
+    if (!user) {
+      setUnread(0);
+      return () => { mounted = false; };
+    }
+
     const loadUnread = async () => {
       try {
-        // Adjust path if your backend uses /api/notifications
-        const res = await api.get('/notifications');
+        const res = await api.get('/notifications'); // hits `${REACT_APP_API}/api/notifications`
         if (!mounted) return;
         const list = Array.isArray(res.data) ? res.data : [];
         setUnread(list.filter(n => !n.read).length);
-      }catch (err) {
-        console.warn('failed to load notifications', {
-          status: err?.response?.status,
-          data: err?.response?.data,
-          message: err?.message
-        });
-      }      
+      } catch (err) {
+        // keep unread as 0 on error, but log for debugging
+        console.warn('failed to load notifications', err?.message || err);
+      }
     };
 
     loadUnread();
 
+    // If you later wire socket.io on the client to window.__APP_IO__ this will increment
     const io = window.__APP_IO__ || null;
     if (io && io.on) {
       const handler = () => setUnread(prev => prev + 1);
       io.on('notification', handler);
-      return () => { mounted = false; io.off('notification', handler); };
+      return () => {
+        mounted = false;
+        io.off('notification', handler);
+      };
     }
 
     return () => { mounted = false; };
-  }, []);
+  }, [user]);
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -47,7 +53,9 @@ export default function Navbar(){
   return (
     <nav className="bg-white shadow">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div><Link to="/" className="text-xl font-semibold text-brand-700">WorkLink</Link></div>
+        <div>
+          <Link to="/" className="text-xl font-semibold text-brand-700">WorkLink</Link>
+        </div>
         <div className="space-x-4 flex items-center">
           <Link to="/jobs" className="text-sm text-gray-600 hover:text-gray-900">Jobs</Link>
           <Link to="/post" className="text-sm text-gray-600 hover:text-gray-900">Post Job</Link>
@@ -57,7 +65,7 @@ export default function Navbar(){
             <>
               <Link to="/login" className="text-sm bg-blue-500 text-white px-3 py-1 rounded">Login</Link>
               <Link to="/register" className="ml-2 text-sm bg-green-500 text-white px-3 py-1 rounded">Register</Link>
-              <Link to="/notifications" className="ml-2 text-sm text-gray-600 hover:text-gray-900">
+              <Link to="/notifications" className="ml-2 text-sm text-gray-600">
                 Notifications {unread > 0 && <span className="ml-1 bg-red-500 text-white rounded-full px-2 text-xs">{unread}</span>}
               </Link>
             </>
