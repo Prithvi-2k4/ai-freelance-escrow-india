@@ -9,6 +9,12 @@ router.get('/', async (req,res) => {
       Job.find(filter).sort({ createdAt:-1 }).skip(skip).limit(Number(limit)),
       Job.countDocuments(filter)
     ]);
+    const cors = require('cors');
+app.use(cors({
+  origin: 'https://ai-freelance-escrow-india.vercel.app',
+  methods: ['GET'],
+  credentials: true
+}));
     res.json({ jobs, total, page:Number(page), limit:Number(limit) });
   } catch(e){ res.status(500).json({ msg:e.message }); }
 });
