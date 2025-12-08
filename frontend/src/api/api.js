@@ -1,25 +1,19 @@
-import axios from 'axios';
+import axios from "axios";
 
-const DEFAULT_BASE = 'https://worklink-070f.onrender.com'; // correct URL
+// your deployed backend (Render)
+const BASE_URL = "https://worklink-070f.onrender.com/api";
 
-const base =
-  process.env.REACT_APP_API ||
-  window.REACT_APP_API ||
-  process.env.REACT_APP_API_URL ||
-  DEFAULT_BASE;
-
-const cleanBase = base.replace(/\/+$/,'');
+console.log("Using API baseURL:", BASE_URL); // debug
 
 const api = axios.create({
-  baseURL: `${cleanBase}/api`,
+  baseURL: BASE_URL,
   timeout: 10000,
 });
 
-api.interceptors.request.use(cfg => {
-  const token = localStorage.getItem('token');
+api.interceptors.request.use((cfg) => {
+  const token = localStorage.getItem("token");
   if (token) cfg.headers.Authorization = `Bearer ${token}`;
   return cfg;
 });
 
-console.log('Using API baseURL =', api.defaults.baseURL); // debug log
 export default api;
