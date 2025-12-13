@@ -1,78 +1,97 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/api'; // relative to components folder
+import api from '../api/api';
 
-export default function Navbar(){
+export default function Navbar() {
   const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem('user') || 'null')
+  );
 
+  // 🔁 Sync user when storage changes (login/logout in other tabs too)
+  useEffect(() => {
+    const syncUser = () => {
+      setUser(JSON.parse(localStorage.getItem('user') || 'null'));
+    };
+    window.addEventListener('storage', syncUser);
+    return () => window.removeEventListener('storage', syncUser);
+  }, []);
+
+  // 🔔 Load notifications only when logged in
   useEffect(() => {
     let mounted = true;
 
-    // only call notifications if user is logged in
     if (!user) {
       setUnread(0);
-      return () => { mounted = false; };
+      return;
     }
 
     const loadUnread = async () => {
       try {
-        const res = await api.get('/notifications'); // hits `${REACT_APP_API}/api/notifications`
+        const res = await api.get('/notifications');
         if (!mounted) return;
         const list = Array.isArray(res.data) ? res.data : [];
         setUnread(list.filter(n => !n.read).length);
       } catch (err) {
-        // keep unread as 0 on error, but log for debugging
-        console.warn('failed to load notifications', err?.message || err);
+        if (err?.response?.status !== 401) {
+          console.warn('failed to load notifications', err);
+        }
       }
     };
 
     loadUnread();
 
-    // If you later wire socket.io on the client to window.__APP_IO__ this will increment
-    const io = window.__APP_IO__ || null;
-    if (io && io.on) {
-      const handler = () => setUnread(prev => prev + 1);
-      io.on('notification', handler);
-      return () => {
-        mounted = false;
-        io.off('notification', handler);
-      };
-    }
-
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setUser(null); // ✅ immediate UI update
     navigate('/login');
   };
 
   return (
     <nav className="bg-white shadow">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div>
-          <Link to="/" className="text-xl font-semibold text-brand-700">WorkLink</Link>
-        </div>
+        <Link to="/" className="text-xl font-semibold text-brand-700">
+          WorkLink
+        </Link>
+
         <div className="space-x-4 flex items-center">
-          <Link to="/jobs" className="text-sm text-gray-600 hover:text-gray-900">Jobs</Link>
-          <Link to="/post" className="text-sm text-gray-600 hover:text-gray-900">Post Job</Link>
-          <Link to="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">Dashboard</Link>
+          <Link to="/jobs" className="text-sm text-gray-600">Jobs</Link>
+          <Link to="/post" className="text-sm text-gray-600">Post Job</Link>
+          <Link to="/dashboard" className="text-sm text-gray-600">Dashboard</Link>
 
           {!user ? (
             <>
-              <Link to="/login" className="text-sm bg-blue-500 text-white px-3 py-1 rounded">Login</Link>
-              <Link to="/register" className="ml-2 text-sm bg-green-500 text-white px-3 py-1 rounded">Register</Link>
-              <Link to="/notifications" className="ml-2 text-sm text-gray-600">
-                Notifications {unread > 0 && <span className="ml-1 bg-red-500 text-white rounded-full px-2 text-xs">{unread}</span>}
+              <Link to="/login" className="bg-blue-500 text-white px-3 py-1 rounded">
+                Login
+              </Link>
+              <Link to="/register" className="bg-green-500 text-white px-3 py-1 rounded">
+                Register
               </Link>
             </>
           ) : (
             <>
+              <Link to="/notifications" className="text-sm text-gray-600">
+                Notifications
+                {unread > 0 && (
+                  <span className="ml-1 bg-red-500 text-white rounded-full px-2 text-xs">
+                    {unread}
+                  </span>
+                )}
+              </Link>
               <span className="text-sm px-2">{user.name}</span>
-              <button onClick={logout} className="text-sm bg-red-500 text-white px-3 py-1 rounded">Logout</button>
+              <button
+                onClick={logout}
+                className="bg-red-500 text-white px-3 py-1 rounded"
+              >
+                Logout
+              </button>
             </>
           )}
         </div>
