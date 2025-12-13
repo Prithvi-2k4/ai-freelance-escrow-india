@@ -12,56 +12,63 @@ const notifRoutes = require('./routes/notifications');
 const app = express();
 app.use(express.json());
 
-// CORS: allow a comma-separated list of origins via FRONTEND_URL env var
-const rawOrigins = (process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean);
+// ===== CORS CONFIG =====
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
 
-const corsOptions = {
+app.use(cors({
   origin: function (origin, callback) {
-    // origin === undefined for server-to-server requests (curl/postman), allow those
+    // allow server-to-server (curl/postman)
     if (!origin) return callback(null, true);
 
-    // allow localhost for local testing
+    // allow localhost
     if (origin.includes('localhost')) return callback(null, true);
 
-    // if no FRONTEND_URL specified -> allow all (dev). Remove this in prod if you want strictness.
-    if (rawOrigins.length === 0 || rawOrigins.includes('*')) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-    if (rawOrigins.includes(origin)) return callback(null, true);
-
-    console.warn('CORS Not Allowed for origin:', origin);
-    return callback(new Error('CORS Not Allowed'));
+    console.error('❌ Blocked by CORS:', origin);
+    return callback(new Error('Not allowed by CORS'));
   },
-  credentials: true, // set true if client sends cookies/withCredentials
+  credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','Accept','X-Requested-With']
-};
+  allowedHeaders: ['Content-Type','Authorization'],
+}));
 
-app.use(require('cors')(corsOptions));
-app.options('*', require('cors')(corsOptions)); // preflight
+app.options('*', cors());
+// =======================
 
-
-app.use('/api/auth', require('./routes/auth'));
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/notifications', notifRoutes);
 
-// Optional: serve frontend build when SERVE_FRONTEND=true
+// Health check
+app.get('/api/_ping', (req, res) => res.json({ ok: true }));
+
+// Optional frontend serve
 if (process.env.SERVE_FRONTEND === 'true') {
   app.use(express.static(path.join(__dirname, '..', 'frontend', 'build')));
-  app.get('*', (req, res) => res.sendFile(path.join(__dirname, '..', 'frontend', 'build', 'index.html')));
+  app.get('*', (req, res) =>
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'build', 'index.html'))
+  );
 }
 
 const PORT = process.env.PORT || 5000;
 connectDB()
   .then(() => {
     app.listen(PORT, () => {
-      console.log('MongoDB connected');
-      console.log('Server running', PORT);
+      console.log('✅ MongoDB connected');
+      console.log('🚀 Server running on port', PORT);
+      console.log('🌍 Allowed origins:', allowedOrigins);
     });
   })
   .catch(err => {
-    console.error('Failed to start server', err);
+    console.error('❌ Failed to start server', err);
     process.exit(1);
   });
 
