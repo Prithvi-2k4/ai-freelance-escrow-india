@@ -1,66 +1,33 @@
-// src/components/Register.jsx
 import React, { useState } from 'react';
 import api from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'freelancer',
-  });
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('Freelancer'); // ✅ IMPORTANT (capitalized)
   const [err, setErr] = useState('');
-  const [ok, setOk] = useState('');
-  const [loading, setLoading] = useState(false);
   const nav = useNavigate();
-
-  const onChange = (e) => {
-    setErr('');
-    setOk('');
-    const { name, value } = e.target;
-    setForm((s) => ({ ...s, [name]: value }));
-  };
 
   const submit = async (e) => {
     e.preventDefault();
     setErr('');
-    setOk('');
-    setLoading(true);
-
     try {
-      // normalize role before sending
-      const payload = {
-        ...form,
-        role: (form.role || '').toString().trim().toLowerCase(),
-      };
+      const res = await api.post('/auth/register', {
+        name,
+        email,
+        password,
+        role, // ✅ send role
+      });
 
-      const res = await api.post('/auth/register', payload);
+      // optional auto-login
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
 
-      // If backend returns a token -> auto-login & go dashboard
-      if (res?.data?.token) {
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-        nav('/dashboard');
-        return;
-      }
-
-      // Otherwise show success message and redirect to login
-      const message = res?.data?.message || res?.data?.ok || 'Registered successfully. Please login.';
-      setOk(message);
-      // short delay so user sees success toast then redirect
-      setTimeout(() => nav('/login'), 900);
-    } catch (error) {
-      const message =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.response?.data?.msg ||
-        (typeof error?.response?.data === 'string' ? error.response.data : null) ||
-        error?.message ||
-        'Registration failed';
-      setErr(message);
-    } finally {
-      setLoading(false);
+      nav('/dashboard');
+    } catch (e) {
+      setErr(e.response?.data?.error || e.response?.data?.msg || 'Register failed');
     }
   };
 
@@ -68,58 +35,50 @@ export default function Register() {
     <div className="max-w-md mx-auto bg-white p-6 rounded shadow mt-10">
       <h2 className="text-2xl font-semibold mb-4">Register</h2>
 
-      {err && <div className="text-red-600 mb-3">{err}</div>}
-      {ok && <div className="text-green-600 mb-3">{ok}</div>}
+      {err && <div className="text-red-600 mb-2">{err}</div>}
 
       <form onSubmit={submit} className="space-y-3">
         <input
-          name="name"
-          value={form.name}
-          onChange={onChange}
+          value={name}
+          onChange={e => setName(e.target.value)}
           placeholder="Name"
           className="w-full border p-2 rounded"
           required
         />
 
         <input
-          name="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
           type="email"
-          value={form.email}
-          onChange={onChange}
           placeholder="Email"
-          className="w-full border p-2 rounded bg-slate-50"
+          className="w-full border p-2 rounded"
           required
         />
 
         <input
-          name="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
           type="password"
-          value={form.password}
-          onChange={onChange}
           placeholder="Password"
-          className="w-full border p-2 rounded bg-slate-50"
+          className="w-full border p-2 rounded"
           required
         />
 
-        <div className="flex items-center gap-3">
-          <label className="text-sm">Register as</label>
+        {/* ✅ ROLE DROPDOWN */}
+        <div>
+          <label className="block text-sm mb-1">Register as</label>
           <select
-            name="role"
-            value={form.role}
-            onChange={onChange}
-            className="border p-2 rounded"
+            value={role}
+            onChange={e => setRole(e.target.value)}
+            className="w-full border p-2 rounded bg-white"
           >
-            <option value="freelancer">Freelancer</option>
-            <option value="client">Client</option>
+            <option value="Freelancer">Freelancer</option>
+            <option value="Client">Client</option>
           </select>
         </div>
 
-        <button
-          className={`w-full ${loading ? 'opacity-70 cursor-not-allowed' : 'bg-brand-500'} text-white py-2 rounded`}
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? 'Registering...' : 'Register'}
+        <button className="w-full bg-brand-500 text-white py-2 rounded">
+          Register
         </button>
       </form>
     </div>
