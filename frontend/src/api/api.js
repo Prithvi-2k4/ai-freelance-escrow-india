@@ -1,19 +1,13 @@
-import axios from "axios";
-
-// your deployed backend (Render)
-const BASE_URL = "https://worklink-070f.onrender.com/api";
-
-console.log("Using API baseURL:", BASE_URL); // debug
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL: BASE_URL,
-  timeout: 10000,
+  baseURL: import.meta.env.VITE_API_URL + '/api',
 });
 
-api.interceptors.request.use((cfg) => {
-  const token = localStorage.getItem("token");
-  if (token) cfg.headers.Authorization = `Bearer ${token}`;
-  return cfg;
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 export default api;
