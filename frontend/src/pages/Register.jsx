@@ -10,20 +10,6 @@ export default function Register() {
     role: 'Freelancer',
   });
 
-  const submit = async (e) => {
-  e.preventDefault();
-  try {
-    await api.post('/auth/register', {
-      ...form,
-      role: form.role || 'Client'   // ← safety net
-    });
-    navigate('/login');
-  } catch (e) {
-    setErr(e.response?.data?.msg || 'Register failed');
-  }
-};
-
-  
   const [err, setErr] = useState('');
   const navigate = useNavigate();
 
@@ -35,7 +21,10 @@ export default function Register() {
   const submit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/auth/register', form);
+      await api.post('/auth/register', {
+        ...form,
+        role: form.role || 'Freelancer', // safety net
+      });
       navigate('/login');
     } catch (e) {
       setErr(e.response?.data?.msg || 'Registration failed');
@@ -78,7 +67,7 @@ export default function Register() {
           required
         />
 
-        {/* ✅ THIS IS THE DROPDOWN */}
+        {/* ✅ ROLE DROPDOWN */}
         <div>
           <label className="block text-sm mb-1">Register as</label>
           <select
