@@ -10,6 +10,20 @@ export default function Register() {
     role: 'Freelancer',
   });
 
+  const submit = async (e) => {
+  e.preventDefault();
+  try {
+    await api.post('/auth/register', {
+      ...form,
+      role: form.role || 'Client'   // ← safety net
+    });
+    navigate('/login');
+  } catch (e) {
+    setErr(e.response?.data?.msg || 'Register failed');
+  }
+};
+
+  
   const [err, setErr] = useState('');
   const navigate = useNavigate();
 
