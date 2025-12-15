@@ -1,4 +1,3 @@
-// backend/models/User.js
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
@@ -7,12 +6,9 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: {
     type: String,
-    enum: ['freelancer', 'client'],   // accept lowercase values
+    enum: ['Freelancer', 'Client'],
     required: true,
-    default: 'freelancer',
-    lowercase: true                   // auto-lowercase stored value
-  },
-  // other fields...
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);
