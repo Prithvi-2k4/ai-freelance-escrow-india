@@ -10,3 +10,5 @@ backend/.env
 # build folders
 frontend/build
 dist
+.vercel
+.env*.local
