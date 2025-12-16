@@ -1,28 +1,25 @@
 require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/auth');
-const jobRoutes = require('./routes/jobs');
-const proposalRoutes = require('./routes/proposals');
-const notificationRoutes = require('./routes/notifications');
-const escrowRoutes = require('./routes/api/escrow');
 
 const app = express();
 
-app.use(express.json());
+// middleware
 app.use(cors());
+app.use(express.json()); // VERY IMPORTANT
 
 // routes
 app.use('/api/auth', authRoutes);
-app.use('/api/jobs', jobRoutes);
-app.use('/api/proposals', proposalRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/escrow', escrowRoutes);
 
-
-// server start
-connectDB().then(() => {
-  app.listen(process.env.PORT || 5000);
-});
+// db + server start
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB connected');
+    app.listen(process.env.PORT || 5000, () =>
+      console.log('Server running')
+    );
+  })
+  .catch(err => console.error(err));
