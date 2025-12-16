@@ -5,3 +5,23 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
 }
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f4f8;
+}
+
+.container {
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
