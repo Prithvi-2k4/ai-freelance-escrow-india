@@ -1,34 +1,22 @@
 const express = require('express');
-const router = express.Router();
-const auth = require('../middleware/auth');
 const Job = require('../models/Job');
+const auth = require('../middleware/auth');
 
-// PUBLIC: list jobs
-router.get('/', async (req, res) => {
-  try {
-    const jobs = await Job.find().sort({ createdAt: -1 }).limit(50).populate('createdBy', 'name email');
-    res.json(jobs);
-  } catch (e) {
-    res.status(500).json({ msg: e.message });
-  }
-});
+const router = express.Router();
 
-// AUTH: create job
+/* Create Job */
 router.post('/', auth, async (req, res) => {
-  try {
-    const { title, description, budget } = req.body;
-    const j = await Job.create({ title, description, budget, createdBy: req.user.id });
-    res.json(j);
-  } catch (e) { res.status(500).json({ msg: e.message }); }
+  const job = await Job.create({
+    ...req.body,
+    postedBy: req.user.email
+  });
+  res.json(job);
 });
 
-// get job by id
-router.get('/:id', async (req, res) => {
-  try {
-    const job = await Job.findById(req.params.id).populate('createdBy', 'name email');
-    if (!job) return res.status(404).json({ msg: 'Not found' });
-    res.json(job);
-  } catch (e) { res.status(500).json({ msg: e.message }); }
+/* Get Jobs */
+router.get('/', async (req, res) => {
+  const jobs = await Job.find().sort({ createdAt: -1 });
+  res.json(jobs);
 });
 
 module.exports = router;
