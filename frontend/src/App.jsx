@@ -1,8 +1,12 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from './pages/Login';
+
 export default function App() {
   return (
-    <div style={{ padding: 40 }}>
-      <h1>React is working</h1>
-      <p>If you see this, App.jsx is rendering.</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="*" element={<Login />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
