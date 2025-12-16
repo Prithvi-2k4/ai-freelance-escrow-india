@@ -7,13 +7,18 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const nav = useNavigate();
 
-  const submit = async e => {
-    e.preventDefault();
+const submit = async (e) => {
+  e.preventDefault();
+  try {
     const res = await api.post('/auth/login', { email, password });
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('user', JSON.stringify(res.data.user));
     nav('/dashboard');
-  };
+  } catch (err) {
+    alert('Invalid credentials or server error');
+  }
+};
+;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
